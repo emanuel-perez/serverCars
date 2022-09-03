@@ -12,12 +12,6 @@ const uri = "mongodb+srv://root:BurgerKing@cluster0.7vumd.mongodb.net/fitness?re
 var app = express()
 const client = new MongoClient(uri);
 
-const port = process.env.PORT || 10000;
-
-app.listen(port, function () {
-    console.log("Started application on port %d", port)
-});
-
 app.use(cors());
 
 app.use((req,res,next) => {
@@ -38,3 +32,9 @@ app.get("/", function(req, res){
 // Body Parser Middleware
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
+
+const port = process.env.PORT || 10000;
+
+app.listen(port, function () {
+    console.log("Started application on port %d", port)
+});
