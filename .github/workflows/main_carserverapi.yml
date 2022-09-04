@@ -52,5 +52,5 @@ jobs:
         with:
           app-name: 'carServerapi'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6FDABE3BFD6C4B819FEE0D769F794226 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_5909CD0114544A83B8F9443AC24AC5A7 }}
           package: .
