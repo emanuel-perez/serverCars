@@ -34,6 +34,11 @@ app.get("/catalog/makes", function(req,res){ // Returns all the unique Makes
     getAllMakes().then(r => res.json(r))
 })
 
+app.get("/catalog/make/:make", function(req,res){
+    console.log("Getting all cars for one make");
+    getCarsOneMake(req.params.make).then(r => res.json(r))
+})
+
 // Body Parser Middleware
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
@@ -55,5 +60,20 @@ async function getAllMakes(){
     }
     finally{
         await client.close()
+    }
+}
+
+async function getCarsOneMake(make){
+    try {
+        await client.connect();
+        const carSalesCollection = client.db('Cars').collection('carSales');
+        const query = {Make:make};
+        return await carSalesCollection.find(query).toArray();
+    }
+    catch(e) {
+        console.error(e);
+    }
+    finally{
+        await client.close();
     }
 }
