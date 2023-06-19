@@ -29,6 +29,7 @@ app.get("/", function(req, res){
     res.send("Home!")
 })
 
+// Get car makes
 app.get("/catalog/makes", function(req,res){ // Returns all the unique Makes
     console.log("Get Makes Called...")
     getAllMakes().then(r => res.json(r))
@@ -43,12 +44,21 @@ app.get("/catalog/make/:make", function(req,res){
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
+// Login Functions
+app.get("/login/:loginInfo",function(request,response){ // Login checking
+    //response.send("Hello World!!")
+    console.log('just called...')
+    find(request.params.loginInfo).then(r => response.json(r))
+})
+
 const port = process.env.PORT || 10000;
 
 app.listen(port, function () {
     console.log("Started application on port %d", port)
 });
 
+
+// MDB driver functions
 async function getAllMakes(){
     try {
         await client.connect();
@@ -71,6 +81,56 @@ async function getCarsOneMake(make){
         return await carSalesCollection.find(query).toArray();
     }
     catch(e) {
+        console.error(e);
+    }
+    finally{
+        await client.close();
+    }
+}
+
+// Check if the user and pass are in the DB
+async function find(loginInfo){
+    try{
+        await client.connect();
+        const usernameCollection = await client.db('Cars').collection('userBase');
+        const loginInfoObj = parse(loginInfo);
+        console.log('The Find Input: ',loginInfoObj.username);
+        const query = {username:loginInfoObj.username};
+        const doc =  await usernameCollection.find(query).toArray();
+        console.log(doc[0].username)
+        if(doc[0].username == loginInfoObj.username){
+            if(doc[0].password == loginInfoObj.password)
+                return true;
+        }
+        return false;
+    }
+    catch (e){
+        console.error(e);
+    }
+    finally{
+        await client.close();
+    }
+}
+
+// Sign up the new user
+async function signUp(loginInfo){
+    try{
+        await client.connect();
+        const usernameCollection = await client.db('Cars').collection('userBase');
+        const query = {username:loginInfo.username};
+        console.log(query)
+        const doc = await usernameCollection.find(query).toArray();
+        console.log(doc);
+        if(!doc.length) // Check if the user exists already
+        {
+            console.log("empty, good!");
+            await usernameCollection.insertOne(loginInfo);
+            return true;
+        }
+        else
+            return false
+    }
+    catch(e){
         console.error(e);
     }
     finally{
