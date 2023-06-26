@@ -39,6 +39,10 @@ app.get("/catalog/make/:make", function(req,res){
     console.log("Getting all cars for one make");
     getCarsOneMake(req.params.make).then(r => res.json(r))
 })
+app.get("/vin/:id", function(req, res){
+    console.log("getting info on", req.params.id);
+    getVINInfo(req.params.id).then(r => res.json(r));
+})
 
 // Body Parser Middleware
 app.use(express.json());
@@ -50,6 +54,14 @@ app.get("/login/:loginInfo",function(request,response){ // Login checking
     console.log('just called...')
     find(request.params.loginInfo).then(r => response.json(r))
 })
+
+// Sign up functions
+app.post("/newUser", function(req,res){ // Sign Up
+    console.log("New user being created and posted...");
+    console.log(req.body)
+    signUp(req.body).then(r => res.json(r))
+    
+});
 
 const port = process.env.PORT || 10000;
 
@@ -81,6 +93,21 @@ async function getCarsOneMake(make){
         return await carSalesCollection.find(query).toArray();
     }
     catch(e) {
+        console.error(e);
+    }
+    finally{
+        await client.close();
+    }
+}
+
+async function getVINInfo(id){
+    try{
+        await client.connect();
+        const carSalesCollection = client.db('Cars').collection('carSales');
+        const query ={VIN:id};
+        return await carSalesCollection.find(query).toArray();  
+    }
+    catch(e){
         console.error(e);
     }
     finally{
