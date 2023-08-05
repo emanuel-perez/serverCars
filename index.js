@@ -6,6 +6,15 @@ const res = require("express/lib/response");
 const { stringify,parse } = require('querystring');
 var cors = require('cors')
 
+/*
+What To Do Left:
+- Add post for new entries
+- Retrieve and Delete items for Cart Functionality
+- Change/Update/Delete Account Settings
+- Any Other Misc Functionality
+
+*/
+
 // The Start
 const uri = "mongodb+srv://root:KingBurger@cluster0.7vumd.mongodb.net/Cars?retryWrites=true&w=majority";
 
@@ -43,6 +52,10 @@ app.get("/vin/:id", function(req, res){
     console.log("getting info on", req.params.id);
     getVINInfo(req.params.id).then(r => res.json(r));
 })
+app.get("/price/:p", function(req, res){
+    console.log("getting info on price:", req.params.id);
+    getAllPrice(req.params.id).then(r => res.json(r));
+})
 
 // Body Parser Middleware
 app.use(express.json());
@@ -55,6 +68,9 @@ app.get("/login/:loginInfo",function(request,response){ // Login checking
     find(request.params.loginInfo).then(r => response.json(r))
 })
 
+// The Post Functions
+//
+
 // Sign up functions
 app.post("/newUser", function(req,res){ // Sign Up
     console.log("New user being created and posted...");
@@ -62,6 +78,13 @@ app.post("/newUser", function(req,res){ // Sign Up
     signUp(req.body).then(r => res.json(r))
     
 });
+
+// Posting New Entry
+
+app.post("/newEntry", function(req,res){
+    console.log("New Car Entry Being Created...");
+    postNewEntry(req.body).then(r=> res.json(r)); //
+})
 
 const port = process.env.PORT || 10000;
 
@@ -85,6 +108,47 @@ async function getAllMakes(){
     }
 }
 
+async function getAllPrice(){
+    try{
+        await client.connect();
+
+    }
+    catch{
+
+    }
+    finally{
+        await client.close();
+    }
+}
+
+// Post New Entry
+
+async function postNewEntry(entry){
+    try{
+        await client.connect();
+        const carSalesCollection = client.db('Cars').collection('carSales');
+        const query = {VIN:entry.VIN};
+        const doc = await carSalesCollection.find(query).toArray();
+        console.log(doc);
+        if(!doc.length) // Check if the vehicle entry exists already
+        {
+            console.log("empty, good!");
+            await carSalesCollection.insertOne(entry); // insert the new entry to the db
+            return true;
+        }
+        else
+            return false
+
+    }
+    catch {
+        console.error(e);
+    }
+    finally {
+        await client.close();
+    }
+}
+
+// Retrieve all vehicles from one make
 async function getCarsOneMake(make){
     try {
         await client.connect();
@@ -100,12 +164,14 @@ async function getCarsOneMake(make){
     }
 }
 
+
+// Find Info Of One Specific Vehicle
 async function getVINInfo(id){
     try{
         await client.connect();
         const carSalesCollection = client.db('Cars').collection('carSales');
         const query ={VIN:id};
-        return await carSalesCollection.find(query).toArray();  
+        return await carSalesCollection.find(query).toArray();
     }
     catch(e){
         console.error(e);
