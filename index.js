@@ -86,6 +86,11 @@ app.post("/newEntry", function(req,res){
     postNewEntry(req.body).then(r=> res.json(r)); //
 })
 
+app.post("/buy", function(req,res){
+    console.log("Processing vehicle purchase...");
+    buyVehicle(req.body).then(r => {res.json(r)});
+})
+
 const port = process.env.PORT || 10000;
 
 app.listen(port, function () {
@@ -222,6 +227,23 @@ async function signUp(loginInfo){
         }
         else
             return false
+    }
+    catch(e){
+        console.error(e);
+    }
+    finally{
+        await client.close();
+    }
+}
+
+async function buyVehicle(car) {
+    try{
+        await client.connect();
+        const vehicleCollection = await client.db('Cars').collection('carSales');
+        console.log(car.vin);
+        const res = await vehicleCollection.deleteOne({VIN:car.vin});
+        console.log(res.deletedCount == 1);
+        return (res.deletedCount == 1) // Checks if the deletion went through
     }
     catch(e){
         console.error(e);
